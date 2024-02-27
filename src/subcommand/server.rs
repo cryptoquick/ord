@@ -961,7 +961,7 @@ impl Server {
       &path
     })
     .ok_or_not_found(|| format!("asset {path}"))?;
-    let body = body::boxed(body::Full::from(content.data));
+    let body = body::Body::from(content.data);
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     Ok(
       Response::builder()

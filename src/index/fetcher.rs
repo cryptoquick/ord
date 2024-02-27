@@ -1,13 +1,18 @@
 use {
   super::*,
   base64::Engine,
-  hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
+  hyper::{body::Body, Method, Request, Uri},
+  hyper_util::{
+    client::legacy::{connect::HttpConnector, Client},
+    rt::TokioExecutor,
+  },
   serde_json::{json, Value},
+  std::pin::Pin,
 };
 
 pub(crate) struct Fetcher {
   auth: String,
-  client: Client<HttpConnector>,
+  client: Client<HttpConnector, Pin<Box<dyn Body<Data = String, Error = String>>>>,
   url: Uri,
 }
 
@@ -26,7 +31,11 @@ struct JsonError {
 
 impl Fetcher {
   pub(crate) fn new(options: &Options) -> Result<Self> {
-    let client = Client::new();
+    let client = Client::builder(TokioExecutor::new())
+      .pool_idle_timeout(Duration::from_secs(30))
+      .http2_only(true)
+      .build_http();
+    ();
 
     let url = if options.rpc_url(None).starts_with("http://") {
       options.rpc_url(None)
@@ -132,7 +141,7 @@ impl Fetcher {
 
     let response = self.client.request(req).await?;
 
-    let buf = hyper::body::to_bytes(response).await?;
+    let buf = http_body_util::BodyExt::collect(response).await?;
 
     let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf) {
       Ok(results) => results,
