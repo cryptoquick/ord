@@ -446,7 +446,7 @@ impl Wallet {
     self
       .options
       .bitcoin_rpc_client(Some(self.name.clone()))?
-      .import_descriptors(ImportDescriptors {
+      .import_descriptors(vec![ImportDescriptors {
         descriptor: desc.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
@@ -454,7 +454,7 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      })?;
+      }])?;
 
     Ok(())
   }

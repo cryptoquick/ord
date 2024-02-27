@@ -143,13 +143,13 @@ impl Fetcher {
 
     let buf = http_body_util::BodyExt::collect(response).await?;
 
-    let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf) {
+    let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf.to_bytes()) {
       Ok(results) => results,
       Err(e) => {
         return Err(anyhow!(
           "failed to parse JSON-RPC response: {e}. response: {response}",
           e = e,
-          response = String::from_utf8_lossy(&buf)
+          response = String::from_utf8_lossy(&buf.to_bytes())
         ))
       }
     };
