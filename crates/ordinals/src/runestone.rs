@@ -1,4 +1,4 @@
-use {super::*, flag::Flag, message::Message, tag::Tag};
+use {super::*, flag::Flag, message::Message, std::vec, tag::Tag};
 
 mod flag;
 mod message;
@@ -2183,4 +2183,34 @@ mod tests {
       );
     }
   }
+}
+
+#[test]
+fn pushdata_opcode_is_valid() {
+  let script_pubkey = vec![
+    opcodes::all::OP_RETURN.to_u8(),
+    Runestone::MAGIC_NUMBER.to_u8(),
+    opcodes::all::OP_PUSHBYTES_8.to_u8(),
+    0,
+    134,
+    1,
+    1,
+    188,
+    140,
+    6,
+    2,
+  ];
+
+  let runestone = Runestone {
+    edicts: vec![Edict {
+      id: RuneId::new(134, 1).unwrap(),
+      amount: 99900,
+      output: 2,
+    }],
+    etching: None,
+    mint: None,
+    pointer: None,
+  };
+
+  assert_eq!(runestone.encipher().to_bytes(), script_pubkey);
 }
